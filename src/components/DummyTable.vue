@@ -12,7 +12,7 @@
       @dismissed="dismissCountDown=0"
       @dismiss-count-down="countDownChanged"
     >
-      Ошибка - повторите это действие через {{ dismissCountDown }} seconds...
+      Ошибка - повторите это действие через {{ dismissCountDown }} секунд...
     </b-alert>
   </div>
   </div>
@@ -111,7 +111,7 @@ export default {
     getEmployeesList()
       .then((resp) => {
         if (!Array.isArray(resp)) {
-          throw new Error(resp)
+          throw new Error('Ошибка получения списка')
         }
         this.employees = resp;
       })
@@ -185,7 +185,6 @@ export default {
       const f = this.isNew ?  createEmployee(this.newEmploee) :  updateEmployee(this.newEmploee)
         f.then((res) => {
           console.log(res)
-
           if(!res.data) {
             throw new Error('ошибка запроса')
           }
@@ -193,9 +192,8 @@ export default {
           if (this.isNew) {
             this.employees.push(res.data.data)  
             this.isNew = false
-          } else{
-            console.log('1')
           }
+
           this.newEmploee = JSON.parse(JSON.stringify(newEmploee))
         })
         .catch((e) => {
