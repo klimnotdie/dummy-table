@@ -14,7 +14,8 @@
           @dismissed="dismissCountDown = 0"
           @dismiss-count-down="countDownChanged"
         >
-          Ошибка - повторите это действие через {{ dismissCountDown }} секунд...
+          {{ alert }}- повторите это действие через
+          {{ dismissCountDown }} секунд...
         </b-alert>
       </div>
     </div>
@@ -113,49 +114,50 @@ export default {
       newEmploee: JSON.parse(JSON.stringify(newEmploee)),
       dismissSecs: 3,
       dismissCountDown: 0,
+      alert: "",
       isNew: false,
     };
   },
   created() {
     getEmployeesList()
-      .then((resp) => {
-        if (!Array.isArray(resp)) {
+      .then((res) => {
+        if (!Array.isArray(res)) {
           throw new Error("Ошибка получения списка");
         }
-        this.employees = resp;
+        this.employees = res;
       })
       .catch((e) => {
         this.errors.push(e);
-        console.log(this.errors);
       });
   },
   methods: {
     countDownChanged(dismissCountDown) {
       this.dismissCountDown = dismissCountDown;
     },
-    showAlert() {
+    showAlert(e) {
       this.dismissCountDown = this.dismissSecs;
+      this.alert = e;
     },
     showModal(item, isNew) {
       this.isNew = isNew;
       if (!this.isNew) {
         getEmployee(item.id)
-          .then((resp) => {
-            if (!resp) {
+          .then((res) => {
+            if (!res) {
               throw new Error("Oшибка получения данных работника");
             }
-            console.log(resp);
-            this.newEmploee = resp
+            this.newEmploee = res;
           })
           .catch((e) => {
-            alert(e)
+            this.$bvModal.hide("modal-employee");
+            this.showAlert(e);
           });
       }
       this.$bvModal.show("modal-employee");
     },
     showMsgBox(item) {
       let confirmed;
-      this.boxTwo = item.employee_name;
+      this.box = item.employee_name;
       this.$bvModal
         .msgBoxConfirm(
           `Вы точно хотите удалить работника ${item.employee_name}`,
@@ -173,21 +175,19 @@ export default {
         )
         .then((value) => {
           confirmed = value;
-          if (value) {
-            return deleteEmployee(item.id);
+          if (!value) {
+            return;
           }
+          return deleteEmployee(item.id);
         })
         .then((res) => {
-          if (res && res.data.data) {
-            this.employees = this.employees.filter(
-              (e) => e.id !== +res.data.data
-            );
+          if (res) {
+            this.employees = this.employees.filter((e) => e.id !== +res);
           }
-          console.log(res, confirmed);
-          this.boxTwo = confirmed;
+          this.box = confirmed;
         })
-        .catch(() => {
-          this.showAlert();
+        .catch((e) => {
+          this.showAlert(e);
         });
     },
     checkFormValidity() {
@@ -207,7 +207,6 @@ export default {
         ? createEmployee(this.newEmploee)
         : updateEmployee(this.newEmploee);
       f.then((res) => {
-        console.log(res);
         if (!res.id) {
           throw new Error("ошибка запроса");
         }
@@ -216,8 +215,8 @@ export default {
           this.employees.push(res);
           this.isNew = false;
         } else {
-          const i = this.employees.findIndex(e => e.id === +res.id)
-          this.employees[i] = res
+          const i = this.employees.findIndex((e) => e.id === +res.id);
+          this.employees[i] = res;
         }
 
         this.newEmploee = JSON.parse(JSON.stringify(newEmploee));

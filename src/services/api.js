@@ -16,7 +16,7 @@ export async function getEmployee(id) {
         const response = await axios.get(`${baseUrl}/employee/${id}`);
         return response.data.data
     } catch(e) {
-        return e
+        return Promise.reject("ошибка")
     }
 }
 
@@ -27,15 +27,16 @@ export async function createEmployee(data) {
         });
         return response.data.data
     } catch(e) {
-        return e
+        return Promise.reject("ошибка создания")
     }
 }
 
 export async function deleteEmployee(id) {
     try {
-        return await axios.delete(`${baseUrl}/delete/${id}`);
+        const response = await axios.delete(`${baseUrl}/delete/${id}`);
+        return response.data.data
     } catch(e) {
-        return e
+        return Promise.reject("ошибка удаления")
     }
 }
 
@@ -46,6 +47,6 @@ export async function updateEmployee(data) {
         });
         return response.data.data
     } catch(e) {
-        return e
+        return Promise.reject("ошибка обновления")
     }
 }
